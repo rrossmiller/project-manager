@@ -5,11 +5,16 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/fatih/color"
 )
 
 const defaultPath = "~/Documents/Projects"
+
+var crossedOut = color.New(color.CrossedOut)
 
 type Project struct {
 	Name        string
@@ -20,12 +25,13 @@ type Project struct {
 func main() {
 	customPath := flag.Bool("c", false, "Custom path to add project")
 	clean := flag.Bool("clean", false, "Clear commented projects from the file")
+	list := flag.Bool("l", false, "List current projects and paths")
 	remove := flag.Bool("r", false, "Remove project")
 	removeF := flag.Bool("rf", false, "Force remove project")
 	flag.Parse()
 
 	args := flag.Args()
-	if len(args) == 0 && !*clean {
+	if (len(args) == 0 && !*clean) && !*list {
 		flag.CommandLine.Usage()
 		Err("", 0)
 	}
@@ -55,6 +61,10 @@ func main() {
 		}
 	}
 
+	if *list {
+		List(projects)
+		os.Exit(0)
+	}
 	// add project from user input
 	if *remove || *removeF {
 		projects = RemoveProject(args[0], projects, *removeF)
@@ -71,6 +81,7 @@ func main() {
 	}
 	// write updated file
 	WriteAliasProjectFile(path, projects)
+	Finish()
 }
 
 func GetProjectFromLine(i int, line string) Project {
@@ -163,6 +174,17 @@ func WriteAliasProjectFile(path string, projects []Project) {
 	w.Flush()
 }
 
+func List(projects []Project) {
+	for _, p := range projects {
+		s := fmt.Sprintf("%v - %v\n", p.Name, p.Path)
+		if p.IsCommented {
+			crossedOut.Print(s)
+		} else {
+			fmt.Print(s)
+		}
+	}
+}
+
 func Check(e error) {
 	if e != nil {
 		panic(e)
@@ -172,4 +194,21 @@ func Check(e error) {
 func Err(message string, code int) {
 	fmt.Print(message)
 	os.Exit(code)
+}
+
+func Finish() {
+
+	// binary, lookErr := exec.LookPath("source")
+	// if lookErr != nil {
+	// 	panic(lookErr)
+	// }
+	// args := []string{"rzshrc"}
+	// env := os.Environ()
+
+	// execErr := syscall.Exec(binary, args, env)
+	// if execErr != nil {
+	// 	panic(execErr)
+	// }
+
+	exec.Command("rzshrc").Output()
 }
