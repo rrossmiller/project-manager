@@ -1,3 +1,3 @@
 clear
 cd src
-go run main.go
+go run main.go $@ #testProject
