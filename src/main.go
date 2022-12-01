@@ -7,13 +7,9 @@ import (
 	"os"
 	"strings"
 	"unicode/utf8"
-	// "github.com/fatih/color"
 )
 
 const defaultPath = "~/Documents/Projects"
-
-// var red = color.New(color.FgRed).SprintFunc()
-// var blue = color.New(color.FgBlue).SprintFunc()
 
 type Project struct {
 	Name        string
@@ -23,17 +19,22 @@ type Project struct {
 
 func main() {
 	customPath := flag.Bool("c", false, "Custom path to add project")
+	clean := flag.Bool("clean", false, "Clear commented projects from the file")
 	remove := flag.Bool("r", false, "Remove project")
+	removeF := flag.Bool("rf", false, "Force remove project")
 	flag.Parse()
 
 	args := flag.Args()
-	if len(args) == 0 {
+	if len(args) == 0 && !*clean {
 		flag.CommandLine.Usage()
 		Err("", 0)
 	}
 
 	// read current zshalias file
-	b, err := os.ReadFile("../.zshalias")
+	homeDir, err := os.UserHomeDir()
+	Check(err)
+	path := fmt.Sprintf("%v/.zshalias", homeDir)
+	b, err := os.ReadFile(path)
 	Check(err)
 	lines := strings.Split(string(b), "\n")[1:]
 	projects := make([]Project, 0)
@@ -54,11 +55,11 @@ func main() {
 		}
 	}
 
-	fmt.Println(projects)
-
 	// add project from user input
-	if *remove {
-		fmt.Println("remove")
+	if *remove || *removeF {
+		projects = RemoveProject(args[0], projects, *removeF)
+	} else if *clean {
+		projects = Clean(projects)
 	} else {
 		var path string
 		if *customPath {
@@ -69,7 +70,7 @@ func main() {
 		projects = AddProject(args[0], path, projects)
 	}
 	// write updated file
-	WriteAliasProjectFile(projects)
+	WriteAliasProjectFile(path, projects)
 }
 
 func GetProjectFromLine(i int, line string) Project {
@@ -90,16 +91,62 @@ func GetProjectFromLine(i int, line string) Project {
 	return Project{name, pSplit, false}
 }
 
+func RemoveProject(name string, projects []Project, force bool) []Project {
+	rtn := make([]Project, 0)
+	if name[0] == '#' {
+		Err("Project name must not start with '#'\n", 0)
+	}
+
+	foundName := false
+	for _, p := range projects {
+		if !force && name == p.Name {
+			foundName = true
+			p.IsCommented = true
+			rtn = append(rtn, p)
+		} else if force && name == p.Name {
+			foundName = true
+		} else {
+			rtn = append(rtn, p)
+		}
+	}
+	if !foundName {
+		Err(fmt.Sprintf("Did not find project '%v'\n", name), 0)
+	}
+	return rtn
+}
+
+func Clean(projects []Project) []Project {
+	rtn := make([]Project, 0)
+	for _, p := range projects {
+		if !p.IsCommented {
+			rtn = append(rtn, p)
+		}
+	}
+	return rtn
+}
+
 func AddProject(name, path string, projects []Project) []Project {
 	if name[0] == '#' {
 		Err("Project name must not start with '#'\n", 0)
 	}
+	// if name is in projects, err
+	for i, p := range projects {
+		if name == p.Name && !p.IsCommented {
+			message := fmt.Sprintf("'%v' already exists", name)
+			Err(message, 0)
+		} else if name == p.Name && p.IsCommented {
+			// if name is commented out and paths match, uncomment
+			projects[i].IsCommented = false
+			return projects
+		}
+	}
+
 	path = path + "/" + name
 	return append(projects, Project{name, path, false})
 }
 
-func WriteAliasProjectFile(projects []Project) {
-	f, err := os.Create("../.zshalias")
+func WriteAliasProjectFile(path string, projects []Project) {
+	f, err := os.Create(path)
 	Check(err)
 	defer f.Close()
 	w := bufio.NewWriter(f)
