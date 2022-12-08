@@ -41,8 +41,7 @@ func main() {
 
 	args := flag.Args()
 	if (len(args) == 0 && !*clean) && !*list && !*update {
-		flag.CommandLine.Usage()
-		Err("", 0)
+		interactive()
 	}
 
 	// check viable args
