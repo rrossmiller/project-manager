@@ -35,13 +35,15 @@ func main() {
 	list := flag.Bool("l", false, "ListProjects current projects and paths")
 	remove := flag.Bool("r", false, "Remove project")
 	removeF := flag.Bool("rf", false, "Force remove project")
+	reset := flag.Bool("R", false, "Reset. Uncomment an alias")
 	update := flag.Bool("U", false, "Update project list in ~/Documents/Projects")
 	flag.Parse()
 
 	args := flag.Args()
-	if (len(args) == 0 && !*clean) && !*list && !*update {
+	if len(args) == 0 && !*clean && !*list && !*update {
 		// interactive()
-		*list = true
+		flag.CommandLine.Usage()
+		Err("", 0)
 	}
 
 	// check viable args
@@ -107,6 +109,8 @@ func main() {
 			projects = RemoveProject(args[0], projects, *removeF)
 		} else if *clean {
 			projects = Clean(projects)
+		} else if *reset {
+			projects = Reset(args[0], projects)
 		} else {
 			var path string
 			if *customPath {
@@ -153,6 +157,28 @@ func RemoveProject(name string, projects []*Project, force bool) []*Project {
 			rtn = append(rtn, p)
 		} else if force && name == p.Name {
 			foundName = true
+		} else {
+			rtn = append(rtn, p)
+		}
+	}
+	if !foundName {
+		Err(fmt.Sprintf("Did not find project '%v'", name), 0)
+	}
+	return rtn
+}
+
+func Reset(name string, projects []*Project) []*Project {
+	rtn := make([]*Project, 0)
+	if name[0] == '#' {
+		Err("Project name must not start with '#'", 0)
+	}
+
+	foundName := false
+	for _, p := range projects {
+		if name == p.Name {
+			foundName = true
+			p.IsCommented = false
+			rtn = append(rtn, p)
 		} else {
 			rtn = append(rtn, p)
 		}
