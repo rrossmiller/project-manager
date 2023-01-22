@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nexidian/gocliselect"
+	"github.com/rrossmiller/gocliselect"
 )
 
 func interactive() {
 	menu := gocliselect.NewMenu("Chose a color")
-	// menu.VimKeys = true
+	menu.VimKeys = true
 
 	menu.AddItem("Red", "red")
 	menu.AddItem("Blue", "blue")
