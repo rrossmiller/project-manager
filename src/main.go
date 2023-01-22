@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 	"unicode/utf8"
 
@@ -42,6 +41,7 @@ func main() {
 
 	args := flag.Args()
 	if len(args) == 0 && !*clean && !*list && !*update {
+		// interactive()
 		flag.CommandLine.Usage()
 		Err("", 0)
 	}
@@ -87,7 +87,7 @@ func main() {
 			projPath := "~/Documents/Projects/" + v.Name()
 			for _, p := range projects {
 
-				p.Path = strings.ReplaceAll(p.Path, "/Users/rrossmil", "~")
+				p.Path = strings.ReplaceAll(p.Path, homeDir, "~")
 				if p.Path[utf8.RuneCountInString(p.Path)-1] == '/' {
 					p.Path = p.Path[:utf8.RuneCountInString(p.Path)-1]
 				}
@@ -123,7 +123,6 @@ func main() {
 	}
 	// write updated file
 	WriteAliasProjectFile(path, projects)
-	Finish()
 }
 
 func GetProjectFromLine(i int, line string) Project {
@@ -216,7 +215,6 @@ func AddProject(name, path string, projects []*Project) []*Project {
 		}
 	}
 
-	path = path + "/" + name
 	return append(projects, &Project{name, path, false})
 }
 
@@ -282,8 +280,4 @@ func Check(e error) {
 func Err(message string, code int) {
 	fmt.Println(message)
 	os.Exit(code)
-}
-
-func Finish() {
-	exec.Command("rzshrc").Output()
 }
