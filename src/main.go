@@ -33,7 +33,7 @@ func main() {
 	customPath := flag.Bool("c", false, "Custom path to add project")
 	clean := flag.Bool("clean", false, "Clear commented projects from the file")
 	list := flag.Bool("l", false, "ListProjects current projects and paths")
-	remove := flag.Bool("r", false, "Remove project")
+	remove := flag.Bool("r", false, "Cross out a project")
 	removeF := flag.Bool("rf", false, "Force remove project")
 	reset := flag.Bool("R", false, "Reset. Uncomment an alias")
 	update := flag.Bool("U", false, "Update project list in ~/Documents/Projects")
