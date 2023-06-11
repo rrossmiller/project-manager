@@ -1,0 +1,13 @@
+# Project paths
+
+alias ppproj-manager='cd ~/Documents/Projects/project-manager && clear && work'
+alias ppvenv-manager='cd ~/Documents/Projects/venv-manager && clear && work'
+alias ppleet-code='cd ~/Documents/leet-code && clear && work'
+alias pplanglearn='cd ~/Documents/Projects/language-learning && clear && work'
+alias ppgfmt='cd ~/Documents/Projects/gsql-formatter && clear && work'
+alias ppdaily-goal-tracker='cd ~/Documents/Projects/daily-goal-tracker && clear && work'
+alias ppdatasets='cd ~/Documents/Projects/datasets && clear && work'
+alias pptree-sitter-gsql='cd ~/Documents/Projects/tree-sitter-gsql && clear && work'
+alias ppwaiig='cd /Users/robrossmiller/Documents/Projects/waiig && clear && work'
+
+#alias ppdatasets='cd ~/Documents/Projects/datasets && clear && work'
