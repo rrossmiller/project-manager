@@ -1,4 +1,4 @@
-use std::{env, path::PathBuf, process::exit};
+use std::{env, process::exit};
 
 use clap::{Parser, Subcommand};
 use pm;
@@ -22,7 +22,6 @@ pub struct CLI {
 enum Commands {
     /// Add an alias to a project
     #[command(arg_required_else_help(true))]
-    //Add { args: Vec<String> },
     Add { args: Vec<String> },
 
     /// Disactivates an alias

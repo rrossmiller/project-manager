@@ -32,7 +32,10 @@ impl PM {
         let name = &args[0];
         let pth = Path::new(&args[1]);
         println!("{} {}", name, pth.display());
-        if !pth.exists() {}
+here
+        if !pth.exists() {
+            println!("{} exists", pth.display())
+        }
     }
 
     /// pretty print the known and ignored aliases
