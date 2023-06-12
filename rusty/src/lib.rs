@@ -24,7 +24,11 @@ impl PM {
     /// Add a new alias
     pub fn add(&self, args: Vec<String>) {
         //-> Result<(),path::>{
+        //Add:
+        //Return result
+        //	any, some sort of path error
         //
+        //Path exists? Make the path
         let name = &args[0];
         let pth = Path::new(&args[1]);
         println!("{} {}", name, pth.display());
