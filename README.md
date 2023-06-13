@@ -4,6 +4,15 @@
 # Rust
 ```
 source ~/.project-aliases
+pm -l true
+pp<alias name> #Cd's to the directory and calls the `work` function in your .zshrc (see bottom of the readme)
+```
+
+List projects
+```
+./pm list
+./pm -l
+./pm -l true # different formatting
 ```
 
 Add project
@@ -22,6 +31,7 @@ Remove project
 ./pm delete project-name 
 ./pm -d project-name 
 ```
+
 
 # Go
 ```
@@ -49,3 +59,20 @@ Remove project
 ```
 
 don't allow same project names
+
+
+# The `work` function
+put this in your .zshrc
+```
+function work() {
+	clear
+	echo Branches:
+	git branch
+	echo
+	echo Contents:
+	ls
+	echo
+	git status
+	echo
+}
+```
