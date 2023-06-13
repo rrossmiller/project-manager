@@ -1,9 +1,8 @@
 use colored::Colorize;
-use home::{self, env::Env};
+use home;
 use std::{
-    fs::{self, File},
-    io::Write,
-    path::{self, Path},
+    fs,
+    path::{self, Path, PathBuf},
 };
 
 /// Represents and alias
@@ -23,9 +22,7 @@ pub struct PM {
 
 impl PM {
     /// Add a new alias
-    pub fn add(&mut self, args: Vec<String>) -> Result<(), String> {
-        let name = args[0].clone();
-        let mut pth = args[1].clone();
+    pub fn add(&mut self, name: String, mut pth: String) -> Result<(), String> {
         let path = Path::new(&pth);
 
         if !path.exists() {
@@ -43,20 +40,67 @@ impl PM {
         return Ok(());
     }
 
-    pub fn write_alias_file(&self) {
-        if let Ok(mut alias_file) = File::create(&self.alias_file) {
-            self.aliases.iter().for_each(|a| {
-                let line = if a.is_commented { "#" } else { "" };
-                let line = format!(
-                    "{}alias pp{}='cd {} && clear ; work'\n",
-                    line, a.name, a.path
-                );
+    pub fn toggle(&mut self, name: String) {
+        // TODO: update inplace -- don't replace
 
-                alias_file.write_all(line.as_bytes()).unwrap();
-            });
+        let mut aliases = Vec::new();
+        // mark for ignore the alias
+        for a in self.aliases.iter() {
+            if a.name.eq(&name) {
+                aliases.push(Alias {
+                    name: a.name.clone(),
+                    path: a.path.clone(),
+                    is_commented: !a.is_commented,
+                });
 
-            println!("{}", fs::read_to_string(&self.alias_file).unwrap());
+                //if !a.is_commented {
+                //    println!("unalias pp{}", a.name);
+                //} else {
+                //    println!("alias pp{}='cd {} && clear ; work'\n", a.name, a.path)
+                //}
+            } else {
+                aliases.push(Alias {
+                    name: a.name.clone(),
+                    path: a.path.clone(),
+                    is_commented: a.is_commented,
+                });
+            }
         }
+
+        self.aliases = aliases;
+    }
+
+    pub fn delete(&mut self, name: String) {
+        // TODO: update inplace -- don't replace
+        //
+        // mark for ignore the alias
+        let mut aliases = Vec::new();
+        for a in self.aliases.iter() {
+            if !a.name.eq(&name) {
+                aliases.push(Alias {
+                    name: a.name.clone(),
+                    path: a.path.clone(),
+                    is_commented: a.is_commented,
+                });
+            }
+        }
+        self.aliases = aliases;
+    }
+
+    // ------
+
+    pub fn write_alias_file(&self) {
+        let mut lines = String::from("");
+        self.aliases.iter().for_each(|a| {
+            let line = if a.is_commented { "#" } else { "" };
+            let line = format!(
+                "{}alias pp{}='cd {} && clear ; work'\n",
+                line, a.name, a.path
+            );
+            lines.push_str(&line);
+        });
+        let path = format!("{}/{}", self.home_dir.to_str().unwrap(), self.alias_file);
+        fs::write(path, lines).unwrap();
     }
 
     /// pretty print the known and ignored aliases
@@ -82,11 +126,11 @@ impl PM {
                     a.path
                 )
                 .strikethrough();
-                println!("{}", t);
+                eprintln!("{}", t);
             }
             // otherwise show it as normal
             else {
-                println!(
+                eprintln!(
                     "{}{}  {}",
                     a.name,
                     " ".repeat(max_len - a.name.len()),
@@ -96,12 +140,23 @@ impl PM {
         });
     }
 
+    pub fn print_terminal(&self) {
+        println!("Projects:");
+        self.aliases.iter().for_each(|a| {
+            // if it's commented out, that means it's cached, but not active
+            // show as strikeout
+            if !a.is_commented {
+                println!("  - {}", a.name);
+            }
+        });
+    }
+
     /// parse the lines of the alias_file and get the aliases
     pub fn populate_aliases(&mut self, contents: String) {
         let mut aliases = Vec::new();
 
         let lines: Vec<&str> = contents.lines().collect();
-        let lines = &lines[1..];
+        let lines = &lines[0..];
 
         for line in lines {
             let mut is_commented = false;
@@ -113,7 +168,12 @@ impl PM {
             }
 
             let splits: Vec<&str> = line.split("=").collect();
-            let name = splits[0].split(" ").nth(1).unwrap().replacen("pp", "", 1);
+            let name = splits[0]
+                .split(" ")
+                .nth(1)
+                .unwrap()
+                .replacen("pp", "", 1)
+                .replacen("#", "", 1);
             let mut path = splits[1].split(" ").nth(1).unwrap().to_string();
 
             path = self.replace_home_dir(path);
@@ -145,7 +205,7 @@ pub fn new(alias_file: String) -> Result<PM, ()> {
             return Err(());
         }
     };
-    let contents = read_file(&alias_file);
+    let contents = read_file(&alias_file, &home_dir);
     let mut pm = PM {
         home_dir,
         alias_file,
@@ -158,12 +218,18 @@ pub fn new(alias_file: String) -> Result<PM, ()> {
 }
 
 /// Reads the alias file and returns the contents
-fn read_file(alias_file: &String) -> String {
-    match fs::read_to_string(&alias_file) {
+fn read_file(alias_file: &String, home_dir: &PathBuf) -> String {
+    let path = format!("{}/{}", home_dir.to_str().unwrap(), alias_file);
+    match fs::read_to_string(&path) {
         Ok(s) => return s,
         Err(_) => {
-            eprintln!("No alias file exists. Creating: {}", &alias_file);
-            fs::write(&alias_file, "").expect(format!("Error creating {}", &alias_file).as_str());
+            eprintln!("No alias file exists. Creating: {}", path);
+            match fs::File::create(path) {
+                Err(e) => {
+                    panic!("{}", e);
+                }
+                _ => "",
+            };
             eprintln!("Alias file created: ");
             return String::from("");
         }

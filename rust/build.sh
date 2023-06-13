@@ -1,5 +1,5 @@
 #!/bin/zsh
-rm pm 
+rm pm
 
 if [[ $1 == 'r' ]]; then
 	echo "building release"
@@ -15,3 +15,4 @@ if [[ $? -ne 0 ]]; then
 	exit 1
 fi
 
+sudo mv pm /usr/local/bin

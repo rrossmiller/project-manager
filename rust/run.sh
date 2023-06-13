@@ -1,6 +1,6 @@
 #!/bin/zsh
 rm pm 
-cp alias_tmp aliasfile
+#cp alias_tmp aliasfile
 
 if [[ $1 == 'r' ]]; then
 	echo "building release"
