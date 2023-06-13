@@ -1,7 +1,8 @@
 use colored::Colorize;
-use home;
+use home::{self, env::Env};
 use std::{
-    fs,
+    fs::{self, File},
+    io::Write,
     path::{self, Path},
 };
 
@@ -22,19 +23,39 @@ pub struct PM {
 
 impl PM {
     /// Add a new alias
-    pub fn add(&self, args: Vec<String>) {
-        //-> Result<(),path::>{
-        //Add:
-        //Return result
-        //	any, some sort of path error
-        //
-        //Path exists? Make the path
-        let name = &args[0];
-        let pth = Path::new(&args[1]);
-        println!("{} {}", name, pth.display());
-here
-        if !pth.exists() {
-            println!("{} exists", pth.display())
+    pub fn add(&mut self, args: Vec<String>) -> Result<(), String> {
+        let name = args[0].clone();
+        let mut pth = args[1].clone();
+        let path = Path::new(&pth);
+
+        if !path.exists() {
+            return Err(format!("path doesn't exist: {}", pth));
+        }
+
+        pth = self.replace_home_dir(pth);
+
+        self.aliases.push(Alias {
+            name,
+            path: pth,
+            is_commented: false,
+        });
+
+        return Ok(());
+    }
+
+    pub fn write_alias_file(&self) {
+        if let Ok(mut alias_file) = File::create(&self.alias_file) {
+            self.aliases.iter().for_each(|a| {
+                let line = if a.is_commented { "#" } else { "" };
+                let line = format!(
+                    "{}alias pp{}='cd {} && clear ; work'\n",
+                    line, a.name, a.path
+                );
+
+                alias_file.write_all(line.as_bytes()).unwrap();
+            });
+
+            println!("{}", fs::read_to_string(&self.alias_file).unwrap());
         }
     }
 
@@ -76,7 +97,7 @@ here
     }
 
     /// parse the lines of the alias_file and get the aliases
-    pub fn populate_aliases(&self, contents: String) -> Vec<Alias> {
+    pub fn populate_aliases(&mut self, contents: String) {
         let mut aliases = Vec::new();
 
         let lines: Vec<&str> = contents.lines().collect();
@@ -95,9 +116,7 @@ here
             let name = splits[0].split(" ").nth(1).unwrap().replacen("pp", "", 1);
             let mut path = splits[1].split(" ").nth(1).unwrap().to_string();
 
-            if path.starts_with(self.home_dir.to_str().unwrap()) {
-                path = path.replace(self.home_dir.to_str().unwrap(), "~");
-            }
+            path = self.replace_home_dir(path);
 
             aliases.push(Alias {
                 name,
@@ -105,18 +124,25 @@ here
                 is_commented,
             })
         }
+        self.aliases = aliases;
+    }
 
-        return aliases;
+    fn replace_home_dir(&self, mut path: String) -> String {
+        let home_dir = self.home_dir.to_str().unwrap();
+        if path.starts_with(home_dir) {
+            path = path.replace(home_dir, "~");
+        }
+        path
     }
 }
 
 /// Creates a new ProjectManager struct
-pub fn new(alias_file: String) -> Option<PM> {
+pub fn new(alias_file: String) -> Result<PM, ()> {
     let home_dir: path::PathBuf = match home::home_dir() {
         Some(pth) => pth,
         None => {
             eprintln!("Unable to get your home dir");
-            return None;
+            return Err(());
         }
     };
     let contents = read_file(&alias_file);
@@ -126,10 +152,9 @@ pub fn new(alias_file: String) -> Option<PM> {
         aliases: vec![],
     };
 
-    //TODO don't return alias vec. just call pm.populate and have it internally store
-    pm.aliases = pm.populate_aliases(contents);
+    pm.populate_aliases(contents);
 
-    return Some(pm);
+    return Ok(pm);
 }
 
 /// Reads the alias file and returns the contents

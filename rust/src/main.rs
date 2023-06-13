@@ -37,10 +37,13 @@ fn main() {
     // Get the program options
     let cli = CLI::parse();
 
-    println!("{:?}", cli);
-    println!();
-    let alias_file = String::from("alias");
-    let pm = pm::new(alias_file).expect("");
+    let alias_file = String::from("aliasfile");
+    let mut pm: pm::PM;
+    if let Ok(x) = pm::new(alias_file) {
+        pm = x;
+    } else {
+        exit(1);
+    }
 
     // default action (no args): print all the known aliases
     if env::args().len() == 1 || cli.list {
@@ -55,7 +58,14 @@ fn main() {
                 eprintln!("Only pass in <name> <path>");
                 exit(1);
             }
-            pm.add(args);
+            match pm.add(args) {
+                Ok(_) => {
+                    pm.write_alias_file();
+                }
+                Err(s) => {
+                    eprintln!("{}", s);
+                }
+            };
         }
         Commands::Remove => println!("not yet implemented"),
         Commands::Delete => println!("not yet implemented"),
