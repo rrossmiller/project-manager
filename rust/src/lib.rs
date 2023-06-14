@@ -75,14 +75,12 @@ impl PM {
     /// pretty print the known and ignored aliases
     pub fn print(&self) {
         // get the longest name (for padding)
-        let mut max_len = 0;
-        self.aliases.iter().for_each(|a| {
-            max_len = if a.name.len() > max_len {
-                a.name.len()
-            } else {
-                max_len
-            }
-        });
+        let max_len = self
+            .aliases
+            .iter()
+            .map(|a| a.name.len())
+            .max()
+            .expect("Err getting max len of aliases");
 
         self.aliases.iter().for_each(|a| {
             // if it's commented out, that means it's cached, but not active
@@ -128,13 +126,16 @@ impl PM {
         let lines = &lines[0..];
 
         for line in lines {
-            let mut is_commented = false;
             if line.len() == 0 {
                 continue;
             }
+
+            let mut is_commented = false;
             if line.chars().nth(0).unwrap() == '#' {
                 is_commented = true;
             }
+
+            line.chars().nth(0);
 
             let splits: Vec<&str> = line.split("=").collect();
             let name = splits[0]
@@ -143,7 +144,7 @@ impl PM {
                 .unwrap()
                 .replacen("pp", "", 1)
                 .replacen("#", "", 1);
-            let mut path = splits[1].split(" ").nth(1).unwrap().to_string();
+            let mut path = splits[1].split(" ").nth(1).unwrap().to_owned();
 
             path = self.replace_home_dir(path);
 
@@ -167,13 +168,14 @@ impl PM {
 
 /// Creates a new ProjectManager struct
 pub fn new(alias_file: String) -> Result<PM, ()> {
-    let home_dir: path::PathBuf = match home::home_dir() {
-        Some(pth) => pth,
-        None => {
-            eprintln!("Unable to get your home dir");
-            return Err(());
-        }
-    };
+    let home_dir: path::PathBuf;
+    if let Some(pth) = home::home_dir() {
+        home_dir = pth;
+    } else {
+        eprintln!("Unable to get your home dir");
+        return Err(());
+    }
+
     let contents = read_file(&alias_file, &home_dir);
     let mut pm = PM {
         home_dir,
