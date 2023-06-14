@@ -1,5 +1,6 @@
 # Project Manager
 
+Add the `work` function and `source ~/.project-aliases` to your .zshrc 
 
 # Rust
 ```
