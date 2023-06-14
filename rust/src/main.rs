@@ -4,14 +4,14 @@ use clap::{Parser, Subcommand};
 use pm;
 
 // Simple program to greet a person
-#[derive(Parser, Debug)]
+#[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 pub struct CLI {
     #[command(subcommand)]
     command: Commands,
 }
 
-#[derive(Subcommand, Debug)]
+#[derive(Subcommand)]
 enum Commands {
     /// List
     #[command(short_flag('l'))]

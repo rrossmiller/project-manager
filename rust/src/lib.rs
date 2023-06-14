@@ -6,7 +6,7 @@ use std::{
 };
 
 /// Represents and alias
-#[derive(Debug)]
+#[derive()]
 pub struct Alias {
     name: String,
     path: String,
