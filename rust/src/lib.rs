@@ -39,52 +39,21 @@ impl PM {
 
         return Ok(());
     }
-
     pub fn toggle(&mut self, name: String) {
-        // TODO: update inplace -- don't replace
-
-        let mut aliases = Vec::new();
         // mark for ignore the alias
-        for a in self.aliases.iter() {
+        for a in self.aliases.iter_mut() {
             if a.name.eq(&name) {
-                aliases.push(Alias {
-                    name: a.name.clone(),
-                    path: a.path.clone(),
-                    is_commented: !a.is_commented,
-                });
-
-                //if !a.is_commented {
-                //    println!("unalias pp{}", a.name);
-                //} else {
-                //    println!("alias pp{}='cd {} && clear ; work'\n", a.name, a.path)
-                //}
-            } else {
-                aliases.push(Alias {
-                    name: a.name.clone(),
-                    path: a.path.clone(),
-                    is_commented: a.is_commented,
-                });
+                a.is_commented = !a.is_commented;
             }
         }
-
-        self.aliases = aliases;
     }
 
     pub fn delete(&mut self, name: String) {
-        // TODO: update inplace -- don't replace
-        //
-        // mark for ignore the alias
-        let mut aliases = Vec::new();
-        for a in self.aliases.iter() {
-            if !a.name.eq(&name) {
-                aliases.push(Alias {
-                    name: a.name.clone(),
-                    path: a.path.clone(),
-                    is_commented: a.is_commented,
-                });
-            }
-        }
-        self.aliases = aliases;
+        self.aliases = self
+            .aliases
+            .drain(..)
+            .filter(|a| !a.name.eq(&name))
+            .collect();
     }
 
     // ------
