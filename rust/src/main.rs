@@ -3,7 +3,6 @@ use std::process::exit;
 use clap::{Parser, Subcommand};
 use pm;
 
-// Simple program to greet a person
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 pub struct CLI {
@@ -13,7 +12,7 @@ pub struct CLI {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// List
+    /// List your projects
     #[command(short_flag('l'))]
     List { startup: Option<bool> },
 
