@@ -1,7 +1,6 @@
-use std::process::exit;
-
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 use pm;
+use std::process::exit;
 
 // Simple program to greet a person
 #[derive(Parser)]
@@ -12,6 +11,7 @@ pub struct CLI {
 }
 
 #[derive(Subcommand)]
+#[command(infer_subcommands = true)]
 enum Commands {
     /// List
     #[command(short_flag('l'))]
@@ -33,6 +33,13 @@ enum Commands {
     /// Deletes an alias
     #[command(short_flag('d'), arg_required_else_help(true))]
     Delete { name: String },
+
+    /// Generate shell completions
+    Completions {
+        /// The shell to generate the completions for
+        #[arg(value_enum)]
+        shell: clap_complete_command::Shell,
+    },
 }
 
 fn main() {
@@ -41,6 +48,7 @@ fn main() {
     let alias_file = ".project-aliases";
 
     let alias_file = String::from(alias_file);
+    //    let mut pm: pm::PM;
     let mut pm: pm::PM;
     if let Ok(x) = pm::new(alias_file) {
         pm = x;
@@ -69,6 +77,10 @@ fn main() {
         Commands::Delete { name } => {
             pm.delete(name);
             pm.write_alias_file();
+        }
+        // e.g. `$ cli completions bash`
+        Commands::Completions { shell } => {
+            shell.generate(&mut CLI::command(), &mut std::io::stdout());
         }
     }
 }
