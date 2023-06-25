@@ -11,7 +11,3 @@ clap_complete_command = "0.5.1"
 colored = "2.0.0"
 home = "0.5.5"
 
-[build-dependencies]
-clap = { version = "4.3.3", features = ["derive"] }
-clap_complete = "4.3.0"
-
