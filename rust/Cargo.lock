@@ -277,7 +277,6 @@ name = "pm"
 version = "0.1.0"
 dependencies = [
  "clap",
- "clap_complete",
  "clap_complete_command",
  "colored",
  "home",

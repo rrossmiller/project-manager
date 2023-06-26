@@ -1,7 +1,7 @@
 use colored::Colorize;
 use home;
 use std::{
-    fs,
+    env, fs,
     path::{self, Path, PathBuf},
 };
 
@@ -23,13 +23,16 @@ pub struct PM {
 impl PM {
     /// Add a new alias
     pub fn add(&mut self, name: String, mut pth: String) -> Result<(), String> {
-        let path = Path::new(&pth);
+        let path = if pth.eq(".") {
+            env::current_dir().expect("error getting the current dir")
+        } else {
+            Path::new(&pth).to_path_buf()
+        };
 
         if !path.exists() {
             return Err(format!("path doesn't exist: {}", pth));
         }
-
-        pth = self.replace_home_dir(pth);
+        pth = self.replace_home_dir(path.to_str().unwrap().to_string());
 
         self.aliases.push(Alias {
             name,
