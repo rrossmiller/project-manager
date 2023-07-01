@@ -14,13 +14,13 @@ pub struct Alias {
 }
 
 /// The project manager
-pub struct PM {
+pub struct PM<'a> {
     home_dir: path::PathBuf,
-    alias_file: String,
+    alias_file: &'a str,
     aliases: Vec<Alias>,
 }
 
-impl PM {
+impl<'a> PM<'a> {
     /// Add a new alias
     pub fn add(&mut self, name: String, mut pth: String) -> Result<(), String> {
         let path = if pth.eq(".") {
@@ -110,6 +110,7 @@ impl PM {
         });
     }
 
+    /// print less verbose output
     pub fn print_terminal(&self) {
         println!("Projects:");
         self.aliases.iter().for_each(|a| {
@@ -170,7 +171,7 @@ impl PM {
 }
 
 /// Creates a new ProjectManager struct
-pub fn new(alias_file: String) -> Result<PM, ()> {
+pub fn new(alias_file: &str) -> Result<PM, ()> {
     let home_dir: path::PathBuf;
     if let Some(pth) = home::home_dir() {
         home_dir = pth;
@@ -179,7 +180,7 @@ pub fn new(alias_file: String) -> Result<PM, ()> {
         return Err(());
     }
 
-    let contents = read_file(&alias_file, &home_dir);
+    let contents = read_file(alias_file, &home_dir);
     let mut pm = PM {
         home_dir,
         alias_file,
@@ -192,7 +193,7 @@ pub fn new(alias_file: String) -> Result<PM, ()> {
 }
 
 /// Reads the alias file and returns the contents
-fn read_file(alias_file: &String, home_dir: &PathBuf) -> String {
+fn read_file(alias_file: &str, home_dir: &PathBuf) -> String {
     let path = format!("{}/{}", home_dir.to_str().unwrap(), alias_file);
     match fs::read_to_string(&path) {
         Ok(s) => return s,

@@ -45,8 +45,6 @@ fn main() {
     // Get the program options
     let cli = CLI::parse();
     let alias_file = ".project-aliases";
-
-    let alias_file = String::from(alias_file);
     //    let mut pm: pm::PM;
     let mut pm: pm::PM;
     if let Ok(x) = pm::new(alias_file) {
