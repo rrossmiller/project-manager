@@ -168,28 +168,27 @@ impl<'a> PM<'a> {
         }
         path
     }
-}
+    /// Creates a new ProjectManager struct
+    pub fn new(alias_file: &str) -> Result<PM, ()> {
+        let home_dir: path::PathBuf;
+        if let Some(pth) = home::home_dir() {
+            home_dir = pth;
+        } else {
+            eprintln!("Unable to get your home dir");
+            return Err(());
+        }
 
-/// Creates a new ProjectManager struct
-pub fn new(alias_file: &str) -> Result<PM, ()> {
-    let home_dir: path::PathBuf;
-    if let Some(pth) = home::home_dir() {
-        home_dir = pth;
-    } else {
-        eprintln!("Unable to get your home dir");
-        return Err(());
+        let contents = read_file(alias_file, &home_dir);
+        let mut pm = PM {
+            home_dir,
+            alias_file,
+            aliases: vec![],
+        };
+
+        pm.populate_aliases(contents);
+
+        return Ok(pm);
     }
-
-    let contents = read_file(alias_file, &home_dir);
-    let mut pm = PM {
-        home_dir,
-        alias_file,
-        aliases: vec![],
-    };
-
-    pm.populate_aliases(contents);
-
-    return Ok(pm);
 }
 
 /// Reads the alias file and returns the contents

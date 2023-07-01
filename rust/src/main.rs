@@ -1,5 +1,5 @@
 use clap::{CommandFactory, Parser, Subcommand};
-use pm;
+use pm::PM;
 use std::process::exit;
 
 #[derive(Parser)]
@@ -45,9 +45,8 @@ fn main() {
     // Get the program options
     let cli = CLI::parse();
     let alias_file = ".project-aliases";
-    //    let mut pm: pm::PM;
     let mut pm: pm::PM;
-    if let Ok(x) = pm::new(alias_file) {
+    if let Ok(x) = PM::new(alias_file) {
         pm = x;
     } else {
         exit(1);
