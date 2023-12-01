@@ -23,6 +23,11 @@ pub struct PM<'a> {
 impl<'a> PM<'a> {
     /// Add a new alias
     pub fn add(&mut self, name: String, mut pth: String) -> Result<(), String> {
+        for a in self.aliases.iter() {
+            if a.name == name {
+                return Err("An alias with this name already exists".to_string());
+            }
+        }
         let path = if pth.eq(".") {
             env::current_dir().expect("error getting the current dir")
         } else {
