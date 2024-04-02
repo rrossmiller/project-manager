@@ -83,6 +83,11 @@ impl<'a> PM<'a> {
     /// pretty print the known and ignored aliases
     pub fn print(&self) {
         // get the longest name (for padding)
+        if self.aliases.len() == 0 {
+            eprintln!("No project aliases found");
+            return;
+        }
+
         let max_len = self
             .aliases
             .iter()
